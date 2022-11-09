@@ -575,7 +575,7 @@ class MaskedAutoencoderSwin(nn.Module):
 
 def mae_swin_tiny_256_dec512d2b(**kwargs):
     model = MaskedAutoencoderSwin(
-        img_size=256, patch_size=4, in_chans=3, stride=16,
+        in_chans=3, stride=16,
         embed_dim=96, depths=[2, 2, 6, 2], num_heads=[3, 6, 12, 24],
         mlp_ratio=4, window_size=8, # 16 for finetune
         decoder_embed_dim=128, decoder_depth=2, decoder_num_heads=16,
