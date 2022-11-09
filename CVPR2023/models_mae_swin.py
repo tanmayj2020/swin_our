@@ -286,7 +286,7 @@ class MaskedAutoencoderSwin(nn.Module):
     def __init__(self, img_size=256, patch_size=4, in_chans=3, stride=16,
                  embed_dim=96, depths=[2, 2, 6, 2], num_heads=[3, 6, 12, 24],
                  mlp_ratio=4, window_size=8, # 16 for finetune
-                 posmlp_dim=32,num_classes = 10
+                 posmlp_dim=32,num_classes = 10 , 
                  decoder_embed_dim=512, decoder_depth=2, decoder_num_heads=16, 
                  norm_layer=nn.LayerNorm, norm_pix_loss=False, vis_mask_ratio=0.):
         super().__init__()
