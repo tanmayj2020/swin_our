@@ -39,7 +39,7 @@ def get_args_parser():
                         help='Accumulate gradient iterations (for increasing the effective batch size under memory constraints)')
 
     # Model parameters
-    parser.add_argument('--model', default='', type=str, metavar='MODEL',
+    parser.add_argument('--model', default='mae_swin_tiny', type=str, metavar='MODEL',
                         help='Name of model to train')
     parser.add_argument('--norm_pix_loss', action='store_true',
                         help='Use (per-patch) normalized pixels as targets for computing loss')
