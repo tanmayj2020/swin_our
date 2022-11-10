@@ -140,7 +140,7 @@ class MaskTransform(object):
         )
 
     def __call__(self, image):
-        if self.is_train==True:
+        if self.is_train==True:            
             return self.transform(image), self.masked_position_generator()
         else:
             return self.transform(image)

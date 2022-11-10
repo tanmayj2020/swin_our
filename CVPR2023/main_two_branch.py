@@ -47,11 +47,11 @@ def get_args_parser():
     
     parser.add_argument('--dataset', type = str, help='Dataset to use')
 
-    parser.add_argument('--input_size', default=32, type=int,
+    parser.add_argument('--input_size', default=256, type=int,
                         help='images input size')
-    parser.add_argument('--patch_size', default=2, type=int,
+    parser.add_argument('--patch_size', default=16, type=int,
                         help='images input size')
-    parser.add_argument('--token_size', default=int(32 / 2), type=int,
+    parser.add_argument('--token_size', default=int(256 / 16), type=int,
                         help='number of patch (in one dimension), usually input_size//16')  # for mask generator
     parser.add_argument('--mask_ratio', default=0.75, type=float,
                         help='Masking ratio (percentage of removed patches).')
@@ -243,10 +243,11 @@ def main(args):
             label_smoothing=args.smoothing, num_classes=args.nb_classes)
     
     model = models_mae.__dict__[args.model](
-        patch_size= args.patch_size,
-        img_size= args.input_size,
+        #patch_size= args.patch_size,
+        #img_size= args.input_size,
         num_classes=args.nb_classes,
-        norm_pix_loss = args.norm_pix_loss
+        norm_pix_loss = args.norm_pix_loss,
+        #stride=args.patch_size
     )
 
     if args.finetune and not args.eval:

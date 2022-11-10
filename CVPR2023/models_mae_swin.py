@@ -10,7 +10,6 @@
 from functools import partial
 
 import math
-from turtle import pos
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -314,6 +313,10 @@ class MaskedAutoencoderSwin(nn.Module):
         pos_w = torch.arange(0, self.embed_w)[None, None, None, :].repeat(1, 1, self.embed_h, 1).float()
         self.pos_hw = torch.cat((pos_h, pos_w), dim=1) #(1, 2, H, W)
 
+        pos_h_van = torch.arange(0, self.embed_h)[None, :, None, None].repeat(1, 1, self.embed_w, 1).float()
+        pos_w_van = torch.arange(0, self.embed_w)[None, None, :, None].repeat(1, self.embed_h, 1, 1).float()
+        self.pos_hw_vanilla = torch.cat((pos_h_van, pos_w_van), dim=-1)
+
         # self.pos_embed = nn.Parameter(torch.zeros(1, num_patches, embed_dim), requires_grad=False)  # fixed sin-cos embedding
         self.kernel = torch.ones(embed_dim, 1, 2, 2)
 
@@ -364,7 +367,7 @@ class MaskedAutoencoderSwin(nn.Module):
         self.decoder_norm = norm_layer(decoder_embed_dim)
         self.decoder_pred = nn.Linear(decoder_embed_dim, stride**2 * in_chans, bias=True) # decoder to patch
         # --------------------------------------------------------------------------
-        self.head = nn.Linear(embed_dim, num_classes) if num_classes > 0 else nn.Identity()
+        self.head = nn.Linear(encoder_out_dim, num_classes) if num_classes > 0 else nn.Identity()
 
         self.norm_pix_loss = norm_pix_loss
 
@@ -498,7 +501,7 @@ class MaskedAutoencoderSwin(nn.Module):
         return x
     def forward_vanilla(self , x):
         x = self.patch_embed(x)
-        pos_hw = self.pos_hw.to(x.device) 
+        pos_hw = self.pos_hw_vanilla.to(x.device) 
 
         # apply Transformer blocks
         for blk in self.blocks:
@@ -553,6 +556,7 @@ class MaskedAutoencoderSwin(nn.Module):
         return loss
     
     def forward(self, imgs, mask):
+
         latent = self.forward_encoder(imgs, mask) # returned mask may change
         
         #DONE ##################################################################
@@ -575,7 +579,7 @@ class MaskedAutoencoderSwin(nn.Module):
 
 def mae_swin_tiny_256_dec512d2b(**kwargs):
     model = MaskedAutoencoderSwin(
-        in_chans=3, stride=16,
+        img_size=256, patch_size=4, in_chans=3, stride=16,
         embed_dim=96, depths=[2, 2, 6, 2], num_heads=[3, 6, 12, 24],
         mlp_ratio=4, window_size=8, # 16 for finetune
         decoder_embed_dim=128, decoder_depth=2, decoder_num_heads=16,
