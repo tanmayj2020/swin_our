@@ -226,26 +226,29 @@ class MaskedAutoencoderViT(nn.Module):
         loss = (loss * mask).sum() / mask.sum()  # mean loss on removed patches
         return loss
 
-    def forward(self, imgs, mask_ratio=0.75):
-        # This has the class token appended to it
-        latent, mask, ids_restore = self.forward_encoder(imgs, mask_ratio)
-        # This also has the class token
-        latent_vanilla = self.forward_vanilla(imgs)
-        
-        cls_vanilla = latent_vanilla[: , 0 , :]
-        predicted_class = self.head(cls_vanilla)  # Class predictions by the network
+    def forward(self, imgs, mode="train" , mask_ratio=0.75):
+        if mode == "train":
+            # This has the class token appended to it
+            latent, mask, ids_restore = self.forward_encoder(imgs, mask_ratio)
+            # This also has the class token
+            latent_vanilla = self.forward_vanilla(imgs)
 
-        #This doesnt have class token
-        pred_decoder = self.forward_decoder(latent, ids_restore)
-        
-        loss_twobranch = self.forward_loss(imgs, pred_decoder , mask)
-        return loss_twobranch, predicted_class
+            cls_vanilla = latent_vanilla[: , 0 , :]
+            predicted_class = self.head(cls_vanilla)  # Class predictions by the network
+
+            #This doesnt have class token
+            pred_decoder = self.forward_decoder(latent, ids_restore)
+
+            loss_twobranch = self.forward_loss(imgs, pred_decoder , mask)
+            return loss_twobranch, predicted_class
+        elif mode == "test":
+            output = self.forward_vanilla(imgs)
+            class_token = output[: , 0 , :]
+            predicted_class = self.head(class_token)
+            return predicted_class
+
     
-    def forward_test(self, imgs):
-        output = self.forward_vanilla(imgs)
-        class_token = output[: , 0 , :]
-        predicted_class = self.head(class_token)
-        return predicted_class
+   
         
 
 def mae_vit_tiny_dec128d2b(**kwargs):
