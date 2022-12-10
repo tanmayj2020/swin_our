@@ -555,28 +555,26 @@ class MaskedAutoencoderSwin(nn.Module):
         loss = loss.mean()
         return loss
     
-    def forward(self, imgs, mask):
+    def forward(self, imgs, mode="train" , mask=0.75):
+        if mode == "train":
+            latent = self.forward_encoder(imgs, mask) # returned mask may change
 
-        latent = self.forward_encoder(imgs, mask) # returned mask may change
-        
-        #DONE ##################################################################
-        latent_vanilla = self.forward_vanilla(imgs)
-        cls_vanilla = latent_vanilla[: , 0 , :]
-        predicted_class = self.head(cls_vanilla)  # Class predictions by the network
-        ########################################################################
-        
-        pred, mask_num = self.forward_decoder(latent, mask)  # [N, L, p*p*3]
-        
-        loss_twobranch = self.forward_loss(imgs, pred[:, -mask_num:], mask)
-        return loss_twobranch , predicted_class
+            #DONE ##################################################################
+            latent_vanilla = self.forward_vanilla(imgs)
+            cls_vanilla = latent_vanilla[: , 0 , :]
+            predicted_class = self.head(cls_vanilla)  # Class predictions by the network
+            ########################################################################
 
-    def forward_test(self, imgs):
-        output = self.forward_vanilla(imgs)
-        class_token = output[: , 0 , :]
-        predicted_class = self.head(class_token)
-        return predicted_class
+            pred, mask_num = self.forward_decoder(latent, mask)  # [N, L, p*p*3]
 
-
+            loss_twobranch = self.forward_loss(imgs, pred[:, -mask_num:], mask)
+            return loss_twobranch , predicted_class
+        elif mode == "test":
+            output = self.forward_vanilla(imgs)
+            class_token = output[: , 0 , :]
+            predicted_class = self.head(class_token)
+            return predicted_class
+            
 def mae_swin_tiny_256_dec512d2b(**kwargs):
     model = MaskedAutoencoderSwin(
         img_size=256, patch_size=4, in_chans=3, stride=16,
