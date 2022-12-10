@@ -53,7 +53,7 @@ def train_one_epoch(model: torch.nn.Module, criterion: torch.nn.Module,
             samples, targets = mixup_fn(samples, targets)
         loss = 0.0
         with torch.cuda.amp.autocast():
-            loss_twobranch , outputs = model(samples , mask=bool_masked_pos)
+            loss_twobranch , outputs = model(samples,mode="train", mask=bool_masked_pos)
             classification_loss = args.lambda_weight * criterion(outputs, targets)
             loss_twobranch = (1-args.lambda_weight) * loss_twobranch
             loss = loss_twobranch + classification_loss
@@ -118,7 +118,7 @@ def evaluate(data_loader, model, device):
 
         # compute output
         with torch.cuda.amp.autocast():
-            output = model.forward_test(images)
+            output = model(images , mode="test")
             loss = criterion(output, target)
         acc1, acc5 = accuracy(output, target, topk=(1, 5))
 
